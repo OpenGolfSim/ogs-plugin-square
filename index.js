@@ -1,5 +1,10 @@
+/// <reference path="plugins.d.ts" />
+
+let bt;
+
 const scope = {
   discoveredCharacteristics: {},
+  isScanning: false,
   device: { isConnected: false, isReady: false }
 };
 
@@ -226,17 +231,17 @@ async function connectToDevice(device) {
     clearInterval(heartBeatTimer);
     discoveredCharacteristics = {};
     scope.device = { isConnected: false, isReady: false };
-    launchMonitor.updateDeviceStatus(scope.device);
+    shotData.updateDeviceStatus(scope.device);
     this.emit('device', this.device);
   });
 
   device.on('error', (error) => {
-    log.debug('peripheral error', error);
+    logging.debug('peripheral error', error);
   });
 
   await device.connectAsync();
-  log.info('Connected to Square LM!');
-  log.debug('Discovering services...');
+  logging.info('Connected to Square LM!');
+  logging.debug('Discovering services...');
 
   const { characteristics } = await device.discoverAllServicesAndCharacteristicsAsync();
 
@@ -251,39 +256,56 @@ async function connectToDevice(device) {
   discoveredCharacteristics.firmware = findChar(FIRMWARE_VERSION_CHAR_UUID);
 
   scope.device.isConnected = true;
-  launchMonitor.updateDeviceStatus(scope.device);
-
+  shotData.updateDeviceStatus(scope.device);
 }
 
-function handleDiscoveredDevice(device) {
-  console.log(`discovered device: id: ${device.id} name: ${device.advertisement?.localName}`, JSON.stringify(device.advertisement));
-  // console.log(`looking for: id: ${matchId} name: ${preferences.launchMonitor.bluetoothName}`);
-  const lowerCaseHex = preferences.launchMonitor.bluetoothAddress.replace(/\:/g, '').toLowerCase();
-  const deviceName = preferences.launchMonitor.bluetoothName;
-
-  const hexMatch = peripheral.id == lowerCaseHex;
-  const nameMatch = deviceName?.length && device.advertisement.localName?.length && deviceName === device.advertisement.localName;
+async function handleDiscoveredDevice(device) {
+  try {
+    logging.info(`Discovered device: (id:${device.id},name:${device.advertisement?.localName})`, JSON.stringify(device));
   
-  // // The ID matches on windows (uses MAC address), but the localName is usually empty
-  // // While on macOS, the name matches on both sides but the ID doesn't. 
-  // // So we allow either to match
-  if (hexMatch || nameMatch) {
-    log.info('Found a square golf device!');
-    device.connect();
+    // some square devices advertise as BlueZ
+    const nameMatch = /bluez|square/i.test(device.advertisement.localName || '');
+    
+    // The ID matches on windows (uses MAC address), but the localName is usually empty
+    // While on macOS, the name matches on both sides but the ID doesn't. 
+    // So we allow either to match
+    if (nameMatch) {
+      logging.info('Found a square golf device!');
+      // connecting
+      scope.isScanning = false;
+      await bt.stopScanning();
+      connectToDevice(device);
+    }
+  } catch (error) {
+    logging.error('Unable to scan for device!');
   }
 
 }
 
+system.on('exit', async () => {
+  logging.info('EXIT PLUGIN!');
+  bt.off('discover', handleDiscoveredDevice);
+  if (scope.isScanning) {
+    await bt.stopScanning();
+    scope.isScanning = false;
+  }
+  logging.info('PLUGIN STOPPED!');
+});
 
 (async () => {
-  // Scan and connect
-  const bt = bluetooth.createClient();
-
-  bt.on('discover', handleDiscoveredDevice);
-
-  await bt.waitForPoweredOn();
-  await bt.startScanning();
-
+  try {
+    logging.info('Starting ogs-plugin-square!');
+    // Scan and connect
+    bt = bluetooth.createClient();
+    bt.on('discover', handleDiscoveredDevice);
+    
+    logging.info('Waiting for powered on!');
+    await bt.waitForPoweredOn();
+    await bt.startScanning();
+    scope.isScanning = true;
+  } catch (error) {
+    logging.error('Square Error', error);
+  }
 })();
 
 
