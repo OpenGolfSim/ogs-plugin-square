@@ -1,0 +1,1 @@
+A launch monitor plugin for OpenGolfSim that connects to the Square over bluetooth.
