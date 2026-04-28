@@ -1,6 +1,6 @@
 {
   "name": "ogs-plugin-square",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Creates an OpenConnect v1 API server to allow connectors to send shot data over TCP",
   "plugin": {
     "title": "Square HE",

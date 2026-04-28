@@ -32,7 +32,7 @@ declare global {
   }
 
   /**
-   * Send and re
+   * Send and receive shot data from OpenGolfSim
    * @namespace
    *
    */
@@ -117,6 +117,7 @@ declare global {
 
     /** Represents a bluetooth characteristic on the device */
     interface BluetoothCharacteristic {
+      uuid: string;
       on(event: 'data', listener: (data: ArrayBufferLike, isNotification: boolean) => void): this;
       read(): Promise<ArrayBufferLike>;
       write(data: ArrayBufferLike, withoutResponse?: boolean): Promise<void>;
@@ -154,6 +155,7 @@ declare global {
       readonly state: BluetoothDeviceState;
 
       connect(): Promise<void>;
+      disconnect(): Promise<void>;
       discoverAllServicesAndCharacteristics(): Promise<{
         services: BluetoothService[];
         characteristics: BluetoothCharacteristic[];
@@ -177,7 +179,7 @@ declare global {
 
     interface WebSocket {
       /** Emitted when a new message is received */
-      on(event: 'message', listener: (d: string) => void): this;
+      on(event: 'message', listener: (d: ArrayBufferLike | string) => void): this;
       /** Emitted when a socket connection is successfully established */
       on(event: 'connect', listener: () => void): this;
       /** Emitted once the socket is fully closed */
@@ -189,6 +191,8 @@ declare global {
       off(event: 'connect', listener: () => void): this;
       off(event: 'close', listener: () => void): this;
       off(event: 'error', listener: (e: Error) => void): this;
+      
+      send(data: ArrayBufferLike | string): void;
     }
 
     function createWebSocket(socketUrl: string | URL): WebSocket;
