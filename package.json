@@ -1,7 +1,7 @@
 {
   "name": "ogs-plugin-square",
-  "version": "0.0.1",
-  "description": "OGS plugin for connecting to Square devices over bluetooth",
+  "version": "0.0.3",
+  "description": "OGS plugin for connecting to Square HE devices over bluetooth",
   "plugin": {
     "title": "Square HE",
     "type": "launch",
