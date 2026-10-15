@@ -499,7 +499,7 @@ async function initializeDevice() {
   await sleep(2000);
 
   logging.info(`Selecting driver...`);
-  await sendSelectClub(SQUARE_CLUBS.DRIVER.code, 0);
+  await sendSelectClub(scope.currentClub.code, 0);
 
   // we simply wait 3 seconds and send the fist ready event
   // TODO: we should make this more aware of the simulator game state
