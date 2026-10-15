@@ -2,14 +2,6 @@
 
 let bt;
 
-const scope = {
-  discoveredCharacteristics: {},
-  isScanning: false,
-  device: { isConnected: false, isReady: false },
-  sequence: 0, // one-byte sequence (%02x)
-  lastPayload: null,
-  heartBeatInterval: null
-};
 
 const COMMAND_CHAR_UUID = '86602101-6b7e-439a-bdd1-489a3213e9bb';
 const NOTIFICATION_CHAR_UUID = '86602102-6b7e-439a-bdd1-489a3213e9bb';
@@ -44,6 +36,16 @@ const SQUARE_CLUBS = {
   // Alignment stick - special club type used to activate alignment mode
   ALIGNMENT_STICK: { code: '0008', swingStickCode: '0008' }
 
+};
+
+const scope = {
+  discoveredCharacteristics: {},
+  isScanning: false,
+  device: { isConnected: false, isReady: false },
+  sequence: 0, // one-byte sequence (%02x)
+  lastPayload: null,
+  heartBeatInterval: null,
+  currentClub: SQUARE_CLUBS.DRIVER
 };
 
 const Commands = {
@@ -587,6 +589,11 @@ system.on('exit', async () => {
     await scope.peripheral.disconnect();
   }
   await cancelScan();
+});
+
+shotData.on('club', (club) => {
+  scope.currentClub = Object.values(SQUARE_CLUBS).find((c) => c.id === club.id) || SQUARE_CLUBS.DRIVER;
+  if (scope.discoveredCharacteristics.command) sendSelectClub(scope.currentClub.code, 0);
 });
 
 (async () => {

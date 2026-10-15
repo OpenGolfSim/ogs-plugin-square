@@ -1,10 +1,11 @@
 {
   "name": "ogs-plugin-square",
-  "version": "0.0.2",
-  "description": "Creates an OpenConnect v1 API server to allow connectors to send shot data over TCP",
+  "version": "0.0.3",
+  "description": "OGS plugin for connecting to Square HE devices over bluetooth",
   "plugin": {
     "title": "Square HE",
     "type": "launch",
-    "requiresPairing": "bluetooth"
+    "requiresPairing": "bluetooth",
+    "bluetoothMatch": "square|bluez"
   }
 }
