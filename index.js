@@ -45,7 +45,8 @@ const scope = {
   sequence: 0, // one-byte sequence (%02x)
   lastPayload: null,
   heartBeatInterval: null,
-  currentClub: SQUARE_CLUBS.DRIVER
+  currentClub: SQUARE_CLUBS.DRIVER,
+  currentHandedness: 0
 };
 
 const Commands = {
@@ -498,8 +499,7 @@ async function initializeDevice() {
 
   await sleep(2000);
 
-  logging.info(`Selecting driver...`);
-  await sendSelectClub(scope.currentClub.code, 0);
+  await sendSelectClub(scope.currentClub.code, scope.currentHandedness);
 
   // we simply wait 3 seconds and send the fist ready event
   // TODO: we should make this more aware of the simulator game state
@@ -593,7 +593,8 @@ system.on('exit', async () => {
 
 shotData.on('club', (club) => {
   scope.currentClub = Object.values(SQUARE_CLUBS).find((c) => c.id === club.id) || SQUARE_CLUBS.DRIVER;
-  if (scope.discoveredCharacteristics.command) sendSelectClub(scope.currentClub.code, 0);
+  scope.currentHandedness = club.handedness ?? 0;
+  if (scope.discoveredCharacteristics.command) sendSelectClub(scope.currentClub.code, scope.currentHandedness);
 });
 
 (async () => {
